@@ -1,61 +1,96 @@
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:socket_io_client/socket_io_client.dart';
 import 'package:socket_io/socket_io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:untitled/data/constants.dart';
 
+import '../data/fetched_data.dart';
+
+String _name = '';
 class MonitorPage extends StatefulWidget {
   const MonitorPage({Key? key}) : super(key: key);
 
   @override
   State<MonitorPage> createState() => _MonitorPageState();
 }
-
+  String? currentTemprature = '25';
+  bool motionSensorVal = true;
+  String? humidity = '';
+  String? temprature= '0N';
+  String? presence = 'Nothing';
+  String? nfc = 'Locked';
+  String cooling = 'ON';
+  String waterlevel = '250';
+  String lights = 'ON';
 class _MonitorPageState extends State<MonitorPage> {
 
   IO.Socket? socket;
-  String? urlImage,name,uid;
-  String? currentTemprature = '25';
-  bool motionSensorVal = true;
-  // String? humidity =;
-  String? temprature= '0';
-  String? presence = 'Nothing';
-  String? nfc = 'Locked';
-  late final SharedPreferences prefs;
+  String? urlImage,uid;
+
+  //Humudity waterLevel NFC motion sensor
 
   @override
   void initState(){
     super.initState();
     connect();
-    getUserData();
-    print('initialized');
-
+    _getUserData();
+  }
+  @override
+  void setState(fn) {
+    if(mounted) {
+      super.setState(fn);
+    }
   }
 
   Future<void> connect() async {
-    IO.Socket socket = IO.io('http://192.168.25.16:3000',
+    IO.Socket socket = IO.io(serverIpAddress,
         OptionBuilder()
             .setTransports(['websocket']) // for Flutter or Dart VM
             .setExtraHeaders({'foo': 'bar'}) // optional
             .build());
     socket.connect();
-    socket.on('save temp', (msg) => {
-      print(msg)
+    socket.on('data fetched', (msg) => {
+      print(msg),
+      setActuatorData(msg),
+      // setState((){
+      //   currentTemprature = msg;
+      // }),
 
     });
-    socket.emit('save temperature', ' data');
-    // socket.onconnect();
+    // socket.emit('save temperature', ' data');
     print(socket.connected);
 
+  }
+  void setActuatorData(json){
+    FetchedData data =  FetchedData.fromJson(jsonDecode(json));
+    print(data.temperature);
+    if (this.mounted) {
+      setState(() {
+        currentTemprature = data.temperature.toString();
+        humidity = data.humidity;
+        presence = data.motion;
+        if(data.light1 == 'true'){
+          lights = 'ON';
+        }
+        else {
+          lights = 'OFF';
+        }
+      });
+    }
 
   }
 
-  void getUserData() async{
-    prefs = await SharedPreferences.getInstance();
-    name =  prefs.getString('username');
-    currentTemprature = '25';
-    print(name);
+  void _getUserData() async{
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _name = (prefs.getString('username')??'');
+      // currentTemprature = '20';
+    });
+
   }
   @override
   Widget build(BuildContext context) {
@@ -85,7 +120,7 @@ class _MonitorPageState extends State<MonitorPage> {
                 const SizedBox(width: 50),
                 const Spacer(),
                      Text(
-                      'Hi, $name',
+                      'Hi, $_name',
                       style: const TextStyle(
                           color : Colors.black,
                           fontWeight: FontWeight.bold,
@@ -116,38 +151,92 @@ class _MonitorPageState extends State<MonitorPage> {
           child: ListView(
             children: [
               SizedBox(height: 10,),
-              Row( children: [
-                Text('$currentTemprature C',
-                  style: TextStyle(fontSize: 65, fontWeight: FontWeight.w300),
-                ),
-                SizedBox(width: 30,),
-                Column(children: [
-                  Text('Cooling: ',
-                    style: TextStyle(fontSize: 33, fontWeight: FontWeight.normal),),
-                  Text('Heating: ',
-                    style: TextStyle(fontSize: 33, fontWeight: FontWeight.normal),)
-                ],)
-              ]),
+              Container(
+                color: Colors.black12,
+                child: Row( children: [
+                  Text('$currentTemprature C',
+                    style: TextStyle(fontSize: 45, fontWeight: FontWeight.normal),
+                  ),
+                  SizedBox(width: 30,),
+                //   Column(children: [
+                //   //   Row(
+                //   //     children: [
+                //   //       Text('Cooling:  ',
+                //   //       style: TextStyle(fontSize: 28, fontWeight: FontWeight.normal),),
+                //   //       Text('$cooling',
+                //   //         style: TextStyle(fontSize: 28, color: Colors.green, fontWeight: FontWeight.normal),),
+                //   //   ]),
+                //   //   Row(
+                //   //       children: [
+                //   //         Text('NFC:   ',
+                //   //           style: TextStyle(fontSize: 28, fontWeight: FontWeight.normal),),
+                //   //         Text('$nfc',
+                //   //           style: TextStyle(fontSize: 28, color: Colors.green, fontWeight: FontWeight.normal),),
+                //   //       ]),
+                //   // ],)
+                ]),
+              ),
               SizedBox(height: 29,),
-              Row( children: [
-                Text('Motion Sensor',
-                    style: TextStyle(fontSize: 27, fontWeight: FontWeight.normal)),
-                Spacer(),
-                Switch(value: motionSensorVal,
-                  onChanged: (bool newValue){
-                  setState(() {
-                    motionSensorVal = newValue;
-                    print('Motion Sensor state changed');
-                    getUserData();
-                  });
-                  }, )
-              ],),
+
+              Divider(color: Colors.black45,thickness: 1, indent: 30, endIndent: 20,),
+              ListTile(
+                title: Text('Cooling',
+                    style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+                leading: Icon(Icons.ac_unit, color: Colors.blue, size: 50,),
+                trailing: Text('$waterlevel',
+                    style: TextStyle(fontSize: 22, color: Colors.green, fontWeight: FontWeight.bold)),
+
+              ),
+              Divider(color: Colors.black45,thickness: 1, indent: 30, endIndent: 20,),
+              ListTile(
+                title: Text('Water Level',
+                    style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+                leading: Icon(Icons.water_drop, color: Colors.blue, size: 50,),
+                trailing: Text('$waterlevel',
+                    style: TextStyle(fontSize: 22, color: Colors.green, fontWeight: FontWeight.bold)),
+
+              ),
+              Divider(color: Colors.black45,thickness: 1, indent: 30, endIndent: 20,),
+              ListTile(
+                title: Text('Motion ',
+                    style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+                leading: Icon(Icons.man, size: 50, color: Colors.black87),
+                trailing: Text('$presence',
+                    style: TextStyle(fontSize: 22, color: Colors.green, fontWeight: FontWeight.bold)),
+
+              ),
+              Divider(color: Colors.black45,thickness: 1, indent: 30, endIndent: 20,),
+              ListTile(
+                title: Text('Humudity',
+                    style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+                leading: Icon(Icons.ac_unit_rounded, size: 50,),
+                trailing: Text('$humidity',
+                    style: TextStyle(fontSize: 22, color: Colors.green, fontWeight: FontWeight.bold)),
+              ),
+              Divider(color: Colors.black45,thickness: 1, indent: 30, endIndent: 20,),
+              ListTile(
+                title: Text('Lights',
+                    style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+                leading: Icon(Icons.light, size: 50, color: Colors.redAccent),
+                trailing: Text('$lights',
+                    style: TextStyle(fontSize: 22, color: Colors.green, fontWeight: FontWeight.bold)),
+              ),
+              Divider(color: Colors.black45,thickness: 1, indent: 30, endIndent: 20,),
+              ListTile(
+                title: Text('NFC',
+                    style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+                leading: Icon(Icons.lock, color: Colors.blue, size: 50,),
+                trailing: Text('$waterlevel',
+                    style: TextStyle(fontSize: 22, color: Colors.green, fontWeight: FontWeight.bold)),
+
+              ),
+              Divider(color: Colors.black45,thickness: 1, indent: 30, endIndent: 20,),
             ],
           )
       )
 
     );
-    getUserData();
+
   }
 
 

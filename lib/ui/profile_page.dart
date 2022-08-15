@@ -9,6 +9,7 @@ class ProfilePage extends StatefulWidget {
   @override
   State<ProfilePage> createState() => _SettingPageState();
 }
+String username = '' ;
 
 class _SettingPageState extends State<ProfilePage> {
   TextEditingController nameController = TextEditingController();
@@ -17,7 +18,7 @@ class _SettingPageState extends State<ProfilePage> {
   TextEditingController phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   SharedPreferences? prefs;
-  String? username ;
+
 
   @override
   void initState(){
@@ -45,27 +46,17 @@ class _SettingPageState extends State<ProfilePage> {
             Padding(
               padding: const EdgeInsets.only(left: 7, right: 7),
               child: Row(
-                children: [
-                  const Text(
+                children: const [
+                  Text(
                     'Profile',
                     // style: Theme.of(context).textTheme.headline1,
                     style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
-                  ),
-                  const Spacer(),
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Icon(
-                      Icons.edit,
-                      size: 35,
-                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(
-              height: 25,
+              height: 3,
             ),
             Center(
               child: Container(
@@ -81,7 +72,7 @@ class _SettingPageState extends State<ProfilePage> {
                   bottom: (4),
                 ),
                 child: Column(
-                  children: const [
+                  children: [
                     SizedBox(
                       height: (15),
                     ),
@@ -89,11 +80,13 @@ class _SettingPageState extends State<ProfilePage> {
                       backgroundImage: AssetImage(
                         'assets/images/empty_avatar.png',
                       ),
-                      maxRadius: 45.0,
-
+                      maxRadius: 55.0,
+                    ),
+                    SizedBox(
+                      height: (10),
                     ),
                     Text(
-                      '',
+                      '$username',
                       // style: Theme.of(context).textTheme.headline1,
                       style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                     ),
@@ -103,7 +96,7 @@ class _SettingPageState extends State<ProfilePage> {
               ),
             ),
             const SizedBox(
-              height: (20),
+              height: (13),
             ),
             Row(
               children: const [
@@ -150,8 +143,15 @@ class _SettingPageState extends State<ProfilePage> {
                 color: Colors.black87,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Center(
-                  child: Text('Log out', style: TextStyle(fontSize: 18, color: Colors.white70, fontWeight: FontWeight.bold),)
+              child: Center(
+
+                  child: InkWell(
+                    child: Text('Log out',
+                      style:TextStyle(fontSize: 18, color: Colors.white70, fontWeight: FontWeight.bold),),
+                    onTap: (){
+                      print('Log out');
+                    },
+                  )
               ),
             ),
           ],
@@ -162,9 +162,9 @@ class _SettingPageState extends State<ProfilePage> {
 
   void loadDatas() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? name = prefs.getString('username');
-    username = name!;
-
+    setState(() {
+      username = (prefs.getString('username')??'');
+    });
 
   }
 }

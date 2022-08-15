@@ -152,8 +152,8 @@ class _LogInState extends State<LogIn> {
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, String>{
-        'username': 'Teshale',
-        'password': '12345678',
+        'username': username,
+        'password': password,
       }),
     );
     if (response.statusCode == 200) {
@@ -163,7 +163,7 @@ class _LogInState extends State<LogIn> {
     }
     else if(response.statusCode == 401) {
       Fluttertoast.showToast(
-          msg: "This is Center Short Toast",
+          msg: "Incorrect password or username",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.CENTER,
           timeInSecForIosWeb: 1,
