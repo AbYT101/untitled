@@ -70,7 +70,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       // routes: routes,
-      home: const HomePage(),
+      home: const LogIn(),
     );
   }
 }

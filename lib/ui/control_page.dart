@@ -38,7 +38,7 @@ class _ControlPageState extends State<ControlPage> {
             .build());
     socket.connect();
     socket.on('data fetched', (msg) => {
-      print(msg),
+      // print(msg),
       setActuatorData(msg)
     });
 
@@ -51,7 +51,7 @@ class _ControlPageState extends State<ControlPage> {
   }
   void setActuatorData(json){
     FetchedData data =  FetchedData.fromJson(jsonDecode(json));
-    print(data.temperature);
+    // print(data.temperature);
     if (this.mounted) {
       setState(() {
 
@@ -133,10 +133,10 @@ class _ControlPageState extends State<ControlPage> {
                Text('Light 1', style: TextStyle(fontSize: 25, fontWeight: FontWeight.normal),),
                  Switch(value: lightStatus,
                    onChanged: (bool newValue) async{
+                     print('light state changed');
                     String respose = await switchActuators('Light 1', 'true');
                      setState(() {
                        lightStatus = newValue;
-                       print('light state changed');
                      });
                    }, ),
              ],
@@ -180,7 +180,7 @@ class _ControlPageState extends State<ControlPage> {
             Container(
               child: Column(
                 children: [
-                  Icon(Icons.ac_unit_sharp, size: 120),
+                  Icon(Icons.man_sharp, size: 120),
                   Text('Motion Sensor', style: TextStyle(fontSize: 25, fontWeight: FontWeight.normal),),
                   Switch(value: acStatus,
                     onChanged: (bool newValue){
@@ -191,7 +191,41 @@ class _ControlPageState extends State<ControlPage> {
                     }, ),
                 ],
               ),
-            )
+            ),
+          ]),
+          SizedBox(height: 22,),
+          Row( children: [
+            Container(
+              child: Column(
+                children: [
+                  Icon(Icons.ac_unit, size: 120),
+                  Text('   Fan - AC', style: TextStyle(fontSize: 25, fontWeight: FontWeight.normal),),
+                  Switch(value: lightStatus,
+                    onChanged: (bool newValue){
+                      setState(() {
+                        lightStatus = newValue;
+                        print('Motion Sensor state changed');
+                      });
+                    }, ),
+                ],
+              ),
+            ),
+            Spacer(),
+            Container(
+              child: Column(
+                children: [
+                  Icon(Icons.water_drop, size: 120),
+                  Text('Water sensor', style: TextStyle(fontSize: 25, fontWeight: FontWeight.normal),),
+                  Switch(value: acStatus,
+                    onChanged: (bool newValue){
+                      setState(() {
+                        acStatus = newValue;
+                        print('Motion Sensor state changed');
+                      });
+                    }, ),
+                ],
+              ),
+            ),
           ])
         ],)
       )
@@ -208,6 +242,7 @@ class _ControlPageState extends State<ControlPage> {
           'status': status,
         }),
       );
+      print(response.body);
       if (response.statusCode == 200) {
         // If the server did return a 201 CREATED response,
         // then parse the JSON.

@@ -54,11 +54,7 @@ class _MonitorPageState extends State<MonitorPage> {
             .build());
     socket.connect();
     socket.on('data fetched', (msg) => {
-      print(msg),
       setActuatorData(msg),
-      // setState((){
-      //   currentTemprature = msg;
-      // }),
 
     });
     // socket.emit('save temperature', ' data');
@@ -151,8 +147,7 @@ class _MonitorPageState extends State<MonitorPage> {
           child: ListView(
             children: [
               SizedBox(height: 10,),
-              Container(
-                color: Colors.black12,
+              Center(
                 child: Row( children: [
                   Text('$currentTemprature C',
                     style: TextStyle(fontSize: 45, fontWeight: FontWeight.normal),
